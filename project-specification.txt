@@ -37,10 +37,14 @@
       group com.fasterxml.jackson.datatype
       artifact jackson-datatype-jsr310
     }
+    awscdk {
+      group    software.amazon.awscdk
+      artifact rds
+    }
   }
   global [ stdlib test ]
   modules {
-    domain  []
+    domain  [awscdk]
     console [domain]
   }
   detangler [domain]
