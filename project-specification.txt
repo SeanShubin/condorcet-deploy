@@ -37,19 +37,31 @@
       group com.fasterxml.jackson.datatype
       artifact jackson-datatype-jsr310
     }
-    awscdk {
+    awscdk-rds {
       group    software.amazon.awscdk
       artifact rds
+    }
+    awscdk-ec2 {
+      group    software.amazon.awscdk
+      artifact ec2
+    }
+    awscdk-cloudfront {
+      group    software.amazon.awscdk
+      artifact cloudfront
+    }
+    awscdk-certificatemanager {
+      group    software.amazon.awscdk
+      artifact certificatemanager
     }
   }
   global [ stdlib test ]
   modules {
-    domain  [awscdk]
-    console [domain]
+    domain  [ awscdk-rds ]
+    console [ domain ]
   }
   detangler [domain]
   consoleEntryPoint {
-    console com.seanshubin.condorcet.deploy.EntryPoint
+    console com.seanshubin.condorcet.deploy.console.EntryPoint
   }
   javaVersion 12
   deployableToMavenCentral true
