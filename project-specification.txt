@@ -66,4 +66,3 @@
   javaVersion 12
   deployableToMavenCentral true
 }
-
