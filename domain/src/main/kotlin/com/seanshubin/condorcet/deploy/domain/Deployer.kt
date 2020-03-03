@@ -23,7 +23,11 @@ class Deployer : Runnable {
         val instanceType = InstanceType.of(
                 GlobalConstants.instanceClass,
                 GlobalConstants.instanceSize)
-        val databaseInstanceProps = DatabaseInstanceProps.builder().masterUsername(GlobalConstants.databaseMasterUsername).engine(DatabaseInstanceEngine.MYSQL).instanceClass(instanceType).vpc(vpc).build()
+        val databaseInstanceProps = DatabaseInstanceProps.builder()
+                .masterUsername(GlobalConstants.databaseMasterUsername)
+                .engine(DatabaseInstanceEngine.MYSQL).instanceClass(instanceType)
+                .vpc(vpc)
+                .build()
         DatabaseInstance(stack, GlobalConstants.databaseName, databaseInstanceProps)
         app.synth()
     }
