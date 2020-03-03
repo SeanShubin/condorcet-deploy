@@ -1,8 +1,16 @@
 package com.seanshubin.condorcet.deploy.domain
 
+import software.amazon.awscdk.services.ec2.InstanceClass
+import software.amazon.awscdk.services.ec2.InstanceSize
+
 object GlobalConstants {
-    val databaseMasterUsername = "master-username";
-    val databaseName = "database";
-    val condorcetStackName = "condorcet-stack"
-    val vpcName = "vpc"
+    val prefix = "condorcet"
+    val databaseMasterUsername = "$prefix-master-username";
+    val databaseName = "$prefix-database";
+    val condorcetStackName = "$prefix-stack"
+    val vpcName = "$prefix-vpc"
+    val account = "seanshubin"
+    val region = "us-west-1"
+    val instanceClass = InstanceClass.STANDARD3
+    val instanceSize = InstanceSize.NANO
 }

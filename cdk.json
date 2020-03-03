@@ -1,0 +1,3 @@
+{
+  "app": "mvn -pl console exec:java -Dexec.mainClass=com.seanshubin.condorcet.deploy.console.EntryPointKt"
+}
