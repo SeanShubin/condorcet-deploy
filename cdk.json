@@ -1,3 +1,5 @@
 {
-  "app": "mvn -pl console exec:java -Dexec.mainClass=com.seanshubin.condorcet.deploy.console.EntryPointKt"
+  "app": "mvn -pl console exec:java -Dexec.mainClass=com.seanshubin.condorcet.deploy.console.EntryPointKt",
+  "profile": "condorcet",
+  "verbose": true
 }
