@@ -9,7 +9,7 @@ object GlobalConstants {
     val databaseName = "$prefix-database";
     val condorcetStackName = "$prefix-stack"
     val vpcName = "$prefix-vpc"
-    val account = "seanshubin"
+    val account = "964638509728"
     val region = "us-west-1"
     val instanceClass = InstanceClass.STANDARD3
     val instanceSize = InstanceSize.NANO
