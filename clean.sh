@@ -2,4 +2,5 @@
 
 set -ex
 
+cdk destroy --force
 mvn clean

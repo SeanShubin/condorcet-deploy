@@ -1,34 +1,35 @@
 package com.seanshubin.condorcet.deploy.domain
 
-import software.amazon.awscdk.core.App
-import software.amazon.awscdk.core.Environment
-import software.amazon.awscdk.core.Stack
-import software.amazon.awscdk.core.StackProps
+import software.amazon.awscdk.core.*
 import software.amazon.awscdk.services.ec2.InstanceType
 import software.amazon.awscdk.services.ec2.Vpc
 import software.amazon.awscdk.services.rds.DatabaseInstance
-import software.amazon.awscdk.services.rds.DatabaseInstanceEngine
-import software.amazon.awscdk.services.rds.DatabaseInstanceProps
 
-class Deployer : Runnable {
+class Deployer(private val config: ConfigurationValues) : Runnable {
     override fun run() {
         val app = App()
         val environment = Environment.builder()
-                .account(GlobalConstants.account)
-                .region(GlobalConstants.region)
+                .account(config.account)
+                .region(config.region)
                 .build()
         val stackProps = StackProps.builder().env(environment).build()
-        val stack = Stack(app, GlobalConstants.condorcetStackName, stackProps)
-        val vpc = Vpc.Builder.create(stack, GlobalConstants.vpcName).build()
+        val stack = Stack(app, config.stackName, stackProps)
+        val vpc = Vpc.Builder.create(stack, config.vpcName).build()
         val instanceType = InstanceType.of(
-                GlobalConstants.instanceClass,
-                GlobalConstants.instanceSize)
-        val databaseInstanceProps = DatabaseInstanceProps.builder()
-                .masterUsername(GlobalConstants.databaseMasterUsername)
-                .engine(DatabaseInstanceEngine.MYSQL).instanceClass(instanceType)
+                config.instanceClass,
+                config.instanceSize)
+        val password = SecretValue.plainText(config.databasePassword)
+        DatabaseInstance.Builder.create(stack, config.databaseInstanceId)
+                .masterUsername(config.databaseMasterUsername)
+                .masterUserPassword(password)
+                .databaseName(config.databaseName)
+                .engineVersion(config.databaseEngineVersion)
+                .engine(config.databaseEngine)
                 .vpc(vpc)
-                .build()
-        DatabaseInstance(stack, GlobalConstants.databaseName, databaseInstanceProps)
+                .port(config.databasePort)
+                .instanceClass(instanceType)
+                .removalPolicy(config.databaseRemovalPolicy)
+                .deletionProtection(false)
         app.synth()
     }
 }
