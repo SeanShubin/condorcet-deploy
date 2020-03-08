@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-cdk deploy
+cdk deploy --require-approval never
