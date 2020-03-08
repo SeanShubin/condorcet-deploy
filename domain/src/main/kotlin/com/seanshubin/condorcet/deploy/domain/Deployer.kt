@@ -12,7 +12,8 @@ class Deployer(private val config: ConfigurationValues) : Runnable {
                 .account(config.account)
                 .region(config.region)
                 .build()
-        val stackProps = StackProps.builder().env(environment).build()
+        val stackProps = StackProps.builder()
+                .env(environment).build()
         val stack = Stack(app, config.stackName, stackProps)
         val vpc = Vpc.Builder.create(stack, config.vpcName).build()
         val instanceType = InstanceType.of(
@@ -29,7 +30,7 @@ class Deployer(private val config: ConfigurationValues) : Runnable {
                 .port(config.databasePort)
                 .instanceClass(instanceType)
                 .removalPolicy(config.databaseRemovalPolicy)
-                .deletionProtection(false)
+                .deletionProtection(false).build()
         app.synth()
     }
 }

@@ -11,21 +11,20 @@ import java.util.*
 class ConfigurationValuesImpl(files: FilesContract,
                               propertiesPath: Path,
                               charset: Charset) : ConfigurationValues {
-    private val prefix = "condorcet"
     override val databasePassword: String
-    override val databaseMasterUsername = "$prefix-master-username";
-    override val databaseName = "$prefix-database";
-    override val stackName = "$prefix-stack"
-    override val vpcName = "$prefix-vpc"
+    override val databaseMasterUsername = "CondorcetMaster";
+    override val databaseInstanceId: String = "CondorcetDatabaseId"
+    override val databaseName = "CondorcetDatabase";
+    override val stackName = "CondorcetStack"
+    override val vpcName = "CondorcetVpc"
     override val account = "964638509728"
     override val region = "us-west-1"
-    override val instanceClass = InstanceClass.STANDARD3
-    override val instanceSize = InstanceSize.NANO
+    override val instanceClass = InstanceClass.MEMORY4
+    override val instanceSize = InstanceSize.LARGE
     override val databaseEngine: DatabaseInstanceEngine = DatabaseInstanceEngine.MYSQL
-    override val databaseEngineVersion: String = "8.0.16"
+    override val databaseEngineVersion: String = "8.0.17"
     override val databasePort: Int = 3306
     override val databaseRemovalPolicy: RemovalPolicy = RemovalPolicy.DESTROY
-    override val databaseInstanceId: String = "$prefix-database-instance"
 
     init {
         val properties = Properties()
