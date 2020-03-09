@@ -6,6 +6,8 @@ import software.amazon.awscdk.services.ec2.InstanceSize
 import software.amazon.awscdk.services.rds.DatabaseInstanceEngine
 
 interface ConfigurationValues {
+    val ec2InstanceType: String
+    val ec2InstanceName: String
     val databaseMasterUsername: String
     val databaseName: String
     val databaseEngineVersion: String
@@ -20,4 +22,6 @@ interface ConfigurationValues {
     val region: String
     val instanceClass: InstanceClass
     val instanceSize: InstanceSize
+    val securityGroupId: String
+    val ec2InstanceId: String
 }

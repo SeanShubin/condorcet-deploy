@@ -2,5 +2,5 @@
 
 set -ex
 
-cdk destroy --force
+time cdk destroy --force
 mvn clean
