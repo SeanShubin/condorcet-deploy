@@ -17,8 +17,6 @@ class Deployer(private val config: ConfigurationValues) : Runnable {
         val vpc = Vpc.Builder
                 .create(stack, config.vpcName)
                 .build()
-        vpc.publicSubnets.forEach(::println)
-        vpc.privateSubnets.forEach(::println)
         val securityGroup = SecurityGroup.Builder
                 .create(stack, config.securityGroupId)
                 .allowAllOutbound(true)

@@ -8,7 +8,7 @@ import java.nio.file.Paths
 
 class DependencyInjection(val commandLineArguments: Array<String>) {
     private val files: FilesContract = FilesDelegate
-    private val propertiesPathName: String = "secrets.properties"
+    private val propertiesPathName: String = "secrets/secrets.properties"
     private val propertiesPath: Path = Paths.get(propertiesPathName)
     private val charset: Charset = StandardCharsets.UTF_8
     private val configurationValues: ConfigurationValues = ConfigurationValuesImpl(files, propertiesPath, charset)

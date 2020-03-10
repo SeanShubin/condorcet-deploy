@@ -64,5 +64,5 @@
     console com.seanshubin.condorcet.deploy.console.EntryPoint
   }
   javaVersion 12
-  deployableToMavenCentral true
+  deployableToMavenCentral false
 }
