@@ -29,7 +29,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.seanshubin.condorcet.deploy.console.EntryPointKt</mainClass>
+                            <mainClass>com.seanshubin.condorcet.deploy.console.EntryPoint</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

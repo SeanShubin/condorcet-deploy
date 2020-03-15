@@ -56,12 +56,14 @@
   }
   global [ stdlib test ]
   modules {
-    domain  [ awscdk-rds ]
-    console [ domain ]
+    domain   [ awscdk-rds jackson ]
+    aws-util [ jackson domain ]
+    console  [ domain ]
   }
   detangler [domain]
   consoleEntryPoint {
-    console com.seanshubin.condorcet.deploy.console.EntryPoint
+    console  com.seanshubin.condorcet.deploy.console.EntryPoint
+    aws-util com.seanshubin.condorcet.deploy.aws.util.EntryPoint
   }
   javaVersion 12
   deployableToMavenCentral false

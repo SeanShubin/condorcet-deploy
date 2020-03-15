@@ -74,6 +74,7 @@
     </dependencyManagement>
     <modules>
         <module>domain</module>
+        <module>aws-util</module>
         <module>console</module>
     </modules>
     <properties>
