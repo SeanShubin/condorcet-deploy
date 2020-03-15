@@ -1,9 +1,9 @@
-**/.idea
-**/out
+/.idea/
 **/*.iml
 **/*.ipr
 **/*.iws
-**/target
+**/out/
+**/target/
 generated
 local-config
 *~

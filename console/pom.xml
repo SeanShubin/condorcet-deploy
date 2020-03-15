@@ -22,7 +22,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.2.0</version>
                 <configuration>
-                    <finalName>condorcet-deploy</finalName>
+                    <finalName>condorcet-deploy-console</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>

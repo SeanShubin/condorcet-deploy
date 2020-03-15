@@ -56,9 +56,10 @@
   }
   global [ stdlib test ]
   modules {
-    domain   [ awscdk-rds jackson ]
-    aws-util [ jackson domain ]
+    domain   [ awscdk-rds jackson contract ]
+    aws-util [ domain ]
     console  [ domain ]
+    contract []
   }
   detangler [domain]
   consoleEntryPoint {

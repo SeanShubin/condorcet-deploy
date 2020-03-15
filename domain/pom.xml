@@ -6,6 +6,11 @@
     <artifactId>condorcet-deploy-domain</artifactId>
     <dependencies>
         <dependency>
+            <groupId>com.seanshubin.condorcet.deploy</groupId>
+            <artifactId>condorcet-deploy-contract</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>software.amazon.awscdk</groupId>
             <artifactId>rds</artifactId>
         </dependency>

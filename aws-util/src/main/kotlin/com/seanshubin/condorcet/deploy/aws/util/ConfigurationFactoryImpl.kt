@@ -2,7 +2,7 @@ package com.seanshubin.condorcet.deploy.aws.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.seanshubin.condorcet.deploy.domain.FilesContract
+import com.seanshubin.condorcet.deploy.contract.FilesContract
 import java.nio.charset.Charset
 import java.nio.file.Paths
 

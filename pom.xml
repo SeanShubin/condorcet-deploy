@@ -76,6 +76,7 @@
         <module>domain</module>
         <module>aws-util</module>
         <module>console</module>
+        <module>contract</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

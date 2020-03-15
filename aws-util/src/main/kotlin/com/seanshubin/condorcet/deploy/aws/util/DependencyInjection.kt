@@ -3,7 +3,11 @@ package com.seanshubin.condorcet.deploy.aws.util
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.seanshubin.condorcet.deploy.domain.*
+import com.seanshubin.condorcet.deploy.contract.FilesContract
+import com.seanshubin.condorcet.deploy.contract.FilesDelegate
+import com.seanshubin.condorcet.deploy.domain.Http
+import com.seanshubin.condorcet.deploy.domain.HttpImpl
+import com.seanshubin.condorcet.deploy.domain.Shell
 import java.net.http.HttpClient
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets

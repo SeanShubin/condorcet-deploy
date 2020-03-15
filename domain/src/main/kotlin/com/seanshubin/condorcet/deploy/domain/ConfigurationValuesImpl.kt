@@ -1,5 +1,6 @@
 package com.seanshubin.condorcet.deploy.domain
 
+import com.seanshubin.condorcet.deploy.contract.FilesContract
 import software.amazon.awscdk.core.RemovalPolicy
 import software.amazon.awscdk.services.ec2.InstanceClass
 import software.amazon.awscdk.services.ec2.InstanceSize
