@@ -21,7 +21,6 @@ class ConfigurationValuesImpl(files: FilesContract,
     override val securityGroupId = "CondorcetSecurityGroupId"
     override val ec2InstanceName = "CondorcetEc2"
     override val ec2InstanceId = "CondorcetEc2Id"
-    override val account = "964638509728"
     override val region = "us-west-1"
     override val instanceClass = InstanceClass.MEMORY4
     override val instanceSize = InstanceSize.LARGE
@@ -30,6 +29,7 @@ class ConfigurationValuesImpl(files: FilesContract,
     override val databasePort: Int = 3306
     override val databaseRemovalPolicy: RemovalPolicy = RemovalPolicy.DESTROY
     override val ec2InstanceType = "t2.micro"
+    override val account: String
 
     init {
         val properties = Properties()
@@ -37,5 +37,6 @@ class ConfigurationValuesImpl(files: FilesContract,
             properties.load(bufferedReader)
         }
         databasePassword = properties.getProperty("condorcet-db-password")
+        account = properties.getProperty("aws-account")
     }
 }

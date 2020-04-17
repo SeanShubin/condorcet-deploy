@@ -1,6 +1,10 @@
 # Condorcet Deploy
 Deploys condorcet voting application to amazon web services via the cloud deployment kit
 
+## Prerequisites
+`npm install -g aws-cdk`
+`cdk --version`
+
 ## Incremental Architecture
 
 ### Step 1

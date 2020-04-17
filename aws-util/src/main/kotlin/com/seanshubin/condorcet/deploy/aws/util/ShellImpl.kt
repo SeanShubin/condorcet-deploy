@@ -17,7 +17,7 @@ class ShellImpl : Shell {
     val exitCode = process.waitFor()
     if (exitCode != 0) {
       val commandString = command.joinToString(" ")
-      val message = "failed with exit code $exitCode\n$commandString"
+      val message = "failed with exit code $exitCode\n$commandString\n$text"
       throw RuntimeException(message)
     }
     return text

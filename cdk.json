@@ -1,5 +1,5 @@
 {
-  "app": "java -jar console/target/condorcet-deploy.jar",
+  "app": "java -jar console/target/condorcet-deploy-console.jar",
   "profile": "condorcet",
   "verbose": true
 }

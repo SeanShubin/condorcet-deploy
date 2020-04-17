@@ -47,7 +47,6 @@ class Login : Command {
     emitLine("export AWS_ACCESS_KEY_ID=$sessionId")
     emitLine("export AWS_SECRET_ACCESS_KEY=$sessionKey")
     emitLine("export AWS_SESSION_TOKEN=$sessionToken")
-    emitLine("")
-    emitLine("open $logInUrl")
+    emitLine("export AWS_SESSION_URL=$logInUrl")
   }
 }
