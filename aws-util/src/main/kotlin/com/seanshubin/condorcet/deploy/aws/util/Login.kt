@@ -12,17 +12,13 @@ class Login : Command {
     val charset = environment.charset
     val http = environment.http
     val configuration = environment.configuration
+    val emitLine = environment.emitLine
     val mfaId = configuration.mfaId
     val mfaName = configuration.mfaName
     val account = configuration.account
     val organization = configuration.organization
     val role = configuration.role
-    val mfaCode = commandLineArguments[1]
-//    val mfaId = "597974043991"
-//    val mfaName = "sshubin@cj.com"
-//    val account = "837465188358"
-//    val organization = "cjorganization"
-//    val role = "CJDeveloperAccessRole"
+    val mfaCode = commandLineArguments.getOrNull(1) ?: throw RuntimeException("mfa code expected")
     val command = listOf(
         "aws",
         "sts",
@@ -48,6 +44,10 @@ class Login : Command {
     val signInTokenJson = http.getString(signInUrl)
     val signInToken = objectMapper.readValue<Map<String, Any>>(signInTokenJson).getValue("SigninToken")
     val logInUrl = "https://signin.aws.amazon.com/federation?Action=login&Destination=https%3A%2F%2Fconsole.aws.amazon.com/console/home?region=us-east-1&SigninToken=$signInToken"
-    println(logInUrl)
+    emitLine("export AWS_ACCESS_KEY_ID=$sessionId")
+    emitLine("export AWS_SECRET_ACCESS_KEY=$sessionKey")
+    emitLine("export AWS_SESSION_TOKEN=$sessionToken")
+    emitLine("")
+    emitLine("open $logInUrl")
   }
 }

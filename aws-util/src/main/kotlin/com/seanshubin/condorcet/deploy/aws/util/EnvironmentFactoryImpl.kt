@@ -9,9 +9,10 @@ class EnvironmentFactoryImpl(val shell: Shell,
                              val objectMapper: ObjectMapper,
                              val charset: Charset,
                              val http: Http,
-                             val configurationFactory: ConfigurationFactory) : EnvironmentFactory {
+                             val configurationFactory: ConfigurationFactory,
+                             val emitLine: (String) -> Unit) : EnvironmentFactory {
   override fun create(commandLineArguments: List<String>): Environment {
     val configuration = configurationFactory.load()
-    return EnvironmentImpl(commandLineArguments, shell, objectMapper, charset, http, configuration)
+    return EnvironmentImpl(commandLineArguments, shell, objectMapper, charset, http, configuration, emitLine)
   }
 }

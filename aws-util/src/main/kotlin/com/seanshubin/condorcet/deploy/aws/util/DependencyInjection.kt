@@ -23,13 +23,15 @@ class DependencyInjection {
   val files: FilesContract = FilesDelegate
   val configurationFactory: ConfigurationFactory =
       ConfigurationFactoryImpl(files, charset, objectMapper)
+  val emitLine: (String) -> Unit = ::println
   val environmentFactory: EnvironmentFactory =
       EnvironmentFactoryImpl(
           shell,
           objectMapper,
           charset,
           http,
-          configurationFactory)
+          configurationFactory,
+          emitLine)
   val dispatcher: Dispatcher =
       Dispatcher(commandFactory, environmentFactory)
 }

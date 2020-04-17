@@ -11,5 +11,6 @@ class EnvironmentImpl(
     override val objectMapper: ObjectMapper,
     override val charset: Charset,
     override val http: Http,
-    override val configuration: Configuration
+    override val configuration: Configuration,
+    override val emitLine: (String) -> Unit
 ) : Environment

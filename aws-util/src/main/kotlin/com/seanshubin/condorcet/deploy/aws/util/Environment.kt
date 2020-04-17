@@ -12,4 +12,5 @@ interface Environment {
   val charset: Charset
   val http: Http
   val configuration: Configuration
+  val emitLine: (String) -> Unit
 }
