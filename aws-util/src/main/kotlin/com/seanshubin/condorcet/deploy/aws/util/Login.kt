@@ -29,6 +29,7 @@ class Login : Command {
         "--duration-seconds", hoursToSeconds(12).toString(),
         "--output", "json",
         "--token-code", mfaCode)
+    val stsCommand = command.joinToString(" ")
     val jsonStsResult = shell.execString(command)
     val stsResult = objectMapper.readValue<Map<String, Any>>(jsonStsResult)
     val credentials = stsResult.getValue("Credentials") as Map<String, Any>
@@ -44,9 +45,10 @@ class Login : Command {
     val signInTokenJson = http.getString(signInUrl)
     val signInToken = objectMapper.readValue<Map<String, Any>>(signInTokenJson).getValue("SigninToken")
     val logInUrl = "https://signin.aws.amazon.com/federation?Action=login&Destination=https%3A%2F%2Fconsole.aws.amazon.com/console/home?region=us-east-1&SigninToken=$signInToken"
-    emitLine("export AWS_ACCESS_KEY_ID=$sessionId")
-    emitLine("export AWS_SECRET_ACCESS_KEY=$sessionKey")
-    emitLine("export AWS_SESSION_TOKEN=$sessionToken")
-    emitLine("export AWS_SESSION_URL=$logInUrl")
+    emitLine("""export AWS_STS_COMMAND="$stsCommand"""")
+    emitLine("""export AWS_ACCESS_KEY_ID="$sessionId"""")
+    emitLine("""export AWS_SECRET_ACCESS_KEY="$sessionKey"""")
+    emitLine("""export AWS_SESSION_TOKEN="$sessionToken"""")
+    emitLine("""export AWS_SESSION_URL="$logInUrl"""")
   }
 }
