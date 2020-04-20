@@ -22,6 +22,7 @@ class Deployer(private val config: ConfigurationValues) : Runnable {
                 .allowAllOutbound(true)
                 .vpc(vpc)
                 .build()
+        securityGroup.addIngressRule(Peer.anyIpv4(), Port.allTraffic())
         val securityGroups = listOf(securityGroup)
         val instanceType = InstanceType.of(
                 config.instanceClass,
