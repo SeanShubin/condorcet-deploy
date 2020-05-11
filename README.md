@@ -5,6 +5,14 @@ Deploys condorcet voting application to amazon web services via the cloud deploy
 `npm install -g aws-cdk`
 `cdk --version`
 
+## Planned scripts
+- persistence-provision
+- persistence-backup
+- persistence-restore
+- application-provision
+- application-deploy
+- application-teardown
+
 ## Incremental Architecture
 
 ### Step 1

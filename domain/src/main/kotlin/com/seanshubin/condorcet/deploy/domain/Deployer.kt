@@ -3,6 +3,7 @@ package com.seanshubin.condorcet.deploy.domain
 import software.amazon.awscdk.core.*
 import software.amazon.awscdk.services.ec2.*
 import software.amazon.awscdk.services.rds.DatabaseInstance
+import software.amazon.awscdk.services.s3.Bucket
 
 class Deployer(private val config: ConfigurationValues) : Runnable {
     override fun run() {
@@ -41,16 +42,17 @@ class Deployer(private val config: ConfigurationValues) : Runnable {
                 .masterUsername(config.databaseMasterUsername)
                 .masterUserPassword(password)
                 .databaseName(config.databaseName)
-                .engineVersion(config.databaseEngineVersion)
-                .engine(config.databaseEngine)
-                .vpc(vpc)
-                .vpcPlacement(subnetSelection)
-                .port(config.databasePort)
-                .instanceClass(instanceType)
-                .removalPolicy(config.databaseRemovalPolicy)
-                .deletionProtection(false)
-                .securityGroups(securityGroups)
-                .build()
+            .engineVersion(config.databaseEngineVersion)
+            .engine(config.databaseEngine)
+            .vpc(vpc)
+            .vpcPlacement(subnetSelection)
+            .port(config.databasePort)
+            .instanceClass(instanceType)
+            .removalPolicy(config.databaseRemovalPolicy)
+            .deletionProtection(false)
+            .securityGroups(securityGroups)
+            .build()
+        val bucket = Bucket(stack, config.s3BucketName)
         app.synth()
     }
 }

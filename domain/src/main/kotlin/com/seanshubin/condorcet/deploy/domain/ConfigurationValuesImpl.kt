@@ -21,6 +21,7 @@ class ConfigurationValuesImpl(files: FilesContract,
     override val securityGroupId = "CondorcetSecurityGroupId"
     override val ec2InstanceName = "CondorcetEc2"
     override val ec2InstanceId = "CondorcetEc2Id"
+    override val s3BucketName: String = "CondorcetBucket"
     override val region = "us-west-1"
     override val instanceClass = InstanceClass.MEMORY4
     override val instanceSize = InstanceSize.LARGE
