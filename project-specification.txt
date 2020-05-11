@@ -45,6 +45,10 @@
       group    software.amazon.awscdk
       artifact ec2
     }
+    awscdk-s3 {
+      group    software.amazon.awscdk
+      artifact s3
+    }
     awscdk-cloudfront {
       group    software.amazon.awscdk
       artifact cloudfront
@@ -56,7 +60,7 @@
   }
   global [ stdlib test ]
   modules {
-    domain   [ awscdk-rds jackson contract ]
+    domain   [ awscdk-rds awscdk-ec2 awscdk-s3 jackson contract ]
     aws-util [ domain ]
     console  [ domain ]
     contract []
