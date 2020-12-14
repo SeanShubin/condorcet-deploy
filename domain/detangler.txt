@@ -2,7 +2,7 @@
   reportDir domain/target/detangled
   searchPaths
   [
-    ./domain/target/condorcet-deploy-domain-0.1.0.jar
+    ./domain/target/condorcet-aws-domain-0.1.0.jar
   ]
   level 2
   startsWith
@@ -13,7 +13,7 @@
         com
         seanshubin
         condorcet
-        deploy
+        aws
       ]
     ]
     exclude []
@@ -23,7 +23,7 @@
         com
         seanshubin
         condorcet
-        deploy
+        aws
       ]
     ]
   }

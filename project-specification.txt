@@ -1,7 +1,7 @@
 {
-  prefix [com seanshubin]
-  name [condorcet deploy]
-  description 'Condorcet Deploy'
+  prefix [ com seanshubin ]
+  name   [ condorcet aws  ]
+  description 'Provision and deploy condorcet-backend and condorcet-frontend to AWS'
   version 0.1.0
   language kotlin
   developer {
@@ -57,18 +57,24 @@
       group    software.amazon.awscdk
       artifact certificatemanager
     }
+    aws-sts {
+      group    software.amazon.awssdk
+      artifact sts
+    }
   }
   global [ stdlib test ]
   modules {
-    domain   [ awscdk-rds awscdk-ec2 awscdk-s3 jackson contract ]
-    aws-util [ domain ]
-    console  [ domain ]
-    contract []
+    provision    [ domain ]
+    deploy       [ domain ]
+    authenticate [ domain ]
+    domain       [ awscdk-rds awscdk-ec2 awscdk-s3 jackson contract aws-sts ]
+    contract     []
   }
-  detangler [domain]
+  detangler [ domain ]
   consoleEntryPoint {
-    console  com.seanshubin.condorcet.deploy.console.EntryPoint
-    aws-util com.seanshubin.condorcet.deploy.aws.util.EntryPoint
+    provision    com.seanshubin.condorcet.aws.provision.EntryPoint
+    deploy       com.seanshubin.condorcet.aws.deploy.EntryPoint
+    authenticate com.seanshubin.condorcet.aws.authenticate.EntryPoint
   }
   javaVersion 12
   deployableToMavenCentral false
