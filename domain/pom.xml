@@ -3,58 +3,42 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>condorcet-aws-domain</artifactId>
+    <artifactId>condorcet-deploy-aws-domain</artifactId>
     <dependencies>
         <dependency>
-            <groupId>com.seanshubin.condorcet.aws</groupId>
-            <artifactId>condorcet-aws-contract</artifactId>
+            <groupId>com.seanshubin.condorcet.deploy.aws</groupId>
+            <artifactId>condorcet-deploy-aws-json</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awscdk</groupId>
-            <artifactId>rds</artifactId>
+            <artifactId>aws-cdk-lib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>software.constructs</groupId>
+            <artifactId>constructs</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.arrow-kt</groupId>
+            <artifactId>arrow-core-jvm</artifactId>
         </dependency>
         <dependency>
             <groupId>software.amazon.awscdk</groupId>
-            <artifactId>ec2</artifactId>
+            <artifactId>apigatewayv2-alpha</artifactId>
         </dependency>
         <dependency>
             <groupId>software.amazon.awscdk</groupId>
-            <artifactId>s3</artifactId>
+            <artifactId>apigatewayv2-integrations</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-kotlin</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>sts</artifactId>
+            <groupId>software.amazon.awscdk</groupId>
+            <artifactId>apigatewayv2-integrations-alpha</artifactId>
         </dependency>
     </dependencies>
     <parent>
-        <groupId>com.seanshubin.condorcet.aws</groupId>
-        <artifactId>condorcet-aws-parent</artifactId>
+        <groupId>com.seanshubin.condorcet.deploy.aws</groupId>
+        <artifactId>condorcet-deploy-aws-parent</artifactId>
         <version>0.1.0</version>
     </parent>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>com.seanshubin.detangler</groupId>
-                <artifactId>detangler-maven-plugin</artifactId>
-                <version>0.9.4</version>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <detanglerConfig>${basedir}/detangler.txt</detanglerConfig>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     <name>${project.groupId}:${project.artifactId}</name>
 </project>

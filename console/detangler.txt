@@ -1,8 +1,8 @@
 {
-  reportDir domain/target/detangled
+  reportDir console/target/detangled
   searchPaths
   [
-    ./domain/target/condorcet-deploy-aws-domain-0.1.0.jar
+    ./console/target/condorcet-deploy-aws-console.jar
   ]
   level 2
   startsWith
@@ -34,5 +34,5 @@
   ignoreJavadoc true
   logTiming true
   logEffectiveConfiguration true
-  allowedInCycle domain/detangler-allowed-in-cycle.txt
+  allowedInCycle console/detangler-allowed-in-cycle.txt
 }

@@ -1,5 +1,4 @@
 {
-  "app": "java -jar provision/target/condorcet-aws-provision.jar",
-  "profile": "condorcet",
+  "app": "java -jar console/target/condorcet-deploy-aws-console.jar",
   "verbose": true
 }
