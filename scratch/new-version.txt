@@ -9,7 +9,6 @@ import software.amazon.awscdk.services.apigatewayv2.alpha.HttpMethod
 import software.amazon.awscdk.services.apigatewayv2.integrations.alpha.HttpUrlIntegration
 import software.amazon.awscdk.services.certificatemanager.DnsValidatedCertificate
 import software.amazon.awscdk.services.certificatemanager.ICertificate
-import software.amazon.awscdk.services.certificatemanager.Certificate
 import software.amazon.awscdk.services.cloudfront.*
 import software.amazon.awscdk.services.cloudfront.origins.HttpOrigin
 import software.amazon.awscdk.services.cloudfront.origins.S3Origin
@@ -20,18 +19,15 @@ import software.amazon.awscdk.services.iam.ServicePrincipal
 import software.amazon.awscdk.services.rds.Credentials
 import software.amazon.awscdk.services.rds.DatabaseInstance
 import software.amazon.awscdk.services.rds.DatabaseInstanceEngine
-import software.amazon.awscdk.services.route53.ARecord
 import software.amazon.awscdk.services.route53.HostedZone
 import software.amazon.awscdk.services.route53.HostedZoneProviderProps
-import software.amazon.awscdk.services.route53.RecordTarget
-import software.amazon.awscdk.services.route53.targets.ApiGatewayv2DomainProperties
-import software.amazon.awscdk.services.route53.targets.CloudFrontTarget
 import software.amazon.awscdk.services.s3.Bucket
 import software.amazon.awscdk.services.s3.deployment.BucketDeployment
 import software.amazon.awscdk.services.s3.deployment.Source
 import software.amazon.awscdk.services.secretsmanager.Secret
 import software.amazon.awscdk.services.secretsmanager.SecretStringGenerator
 import software.constructs.Construct
+import java.security.cert.Certificate
 
 
 class Runner : Runnable {
@@ -61,25 +57,16 @@ class Runner : Runnable {
         const val keyName = "${prefix}Key"
         const val apiName = "${prefix}Api"
         const val urlIntegration = "${prefix}UrlIntegration"
-        const val allCookiesPolicy = "${prefix}AllCookiesPolicy"
-        const val allCookiesPolicyId = "a915f680-5340-4b60-b36f-5ec318bd9b56"
-        const val apiDistributionName = "${prefix}ApiDistribution"
-        const val appDistributionName = "${prefix}AppDistribution"
+        const val distributionName = "${prefix}Distribution"
         const val databasePassword = "${prefix}DatabasePassword"
-        const val apiDomainId = "${prefix}ApiDomainId"
-        const val apiCertificateArn = "arn:aws:acm:us-east-1:964638509728:certificate/9e407996-9bc4-4bf5-a7c1-9aea15b848cf"
-        const val apiHostedZoneCdkId = "${prefix}ApiHostedZone"
+        const val domainId = "${prefix}DomainId"
+        const val hostedZoneCdkId = "${prefix}HostedZone"
         const val apiDomainName = "pairwisevote.org"
-        const val apiCertificateId = "${prefix}ApiCertificate"
-        const val apiAlias = "${prefix}ApiAlias"
+        const val apiCertificateId = "9e407996-9bc4-4bf5-a7c1-9aea15b848cf"
         const val apiHostedZoneId = "Z03310473GG6WYXYEU0FD"
-        const val appDomainId = "${prefix}AppDomainId"
-        const val appCertificateArn = "arn:aws:acm:us-east-1:964638509728:certificate/f703477d-855c-48df-bc4f-74207cb80bc7"
-        const val appHostedZoneCdkId = "${prefix}AppHostedZone"
         const val appDomainName = "pairwisevote.com"
-        const val appCertificateId = "${prefix}AppCertificate"
+        const val appCertificateId = "f703477d-855c-48df-bc4f-74207cb80bc7"
         const val appHostedZoneId = "Z09386273B4IXDJHAW23A"
-        const val appAlias = "${prefix}AppAlias"
     }
 
     override fun run() {
@@ -350,32 +337,34 @@ class Runner : Runnable {
         stackProps:StackProps
     ) : Stack(scope, Names.lastStackId, stackProps) {
         val api = createApi(ec2)
-        val distribution = createCloudfrontDistribution(staticSiteBucket, api)
+//        val distribution = createCloudfrontDistribution(staticSiteBucket, api)
 
         private fun createApi(ec2: Instance): HttpApi {
             val hostedZoneProviderProps = HostedZoneProviderProps
                 .builder()
                 .domainName(Names.apiDomainName)
                 .build()
-            val hostedZone = HostedZone.fromLookup(this, Names.apiHostedZoneCdkId, hostedZoneProviderProps)
-            val certificate = Certificate.fromCertificateArn(this, Names.apiCertificateId, Names.apiCertificateArn)
-            val domainName = DomainName
+            val hostedZone = HostedZone.fromLookup(this, Names.hostedZoneCdkId, hostedZoneProviderProps)
+            val certificate = DnsValidatedCertificate
                 .Builder
-                .create(this, Names.apiDomainId)
+                .create(this, Names.apiCertificateId)
+                .hostedZone(hostedZone)
                 .domainName(Names.apiDomainName)
-                .certificate(certificate)
                 .build()
-            val domainProperties = ApiGatewayv2DomainProperties(domainName.regionalDomainName, domainName.regionalHostedZoneId)
-            val recordTarget = RecordTarget.fromAlias(domainProperties)
-            ARecord.Builder.create(this, Names.apiAlias).zone(hostedZone).target(recordTarget).build()
-            val domainMappingOptions = DomainMappingOptions
-                .builder()
-                .domainName(domainName)
-                .build()
+//            val domainName = DomainName
+//                .Builder
+//                .create(this, Names.domainId)
+//                .domainName(Names.apiDomainName)
+//                .certificate(certificate)
+//                .build()
+//            val domainMappingOptions = DomainMappingOptions
+//                .builder()
+//                .domainName(domainName)
+//                .build()
             val httpApi = HttpApi
                 .Builder
                 .create(this, Names.apiName)
-                .defaultDomainMapping(domainMappingOptions)
+//                .defaultDomainMapping(domainMappingOptions)
                 .build()
             val instancePublicIp = ec2.instancePublicIp
             val url = "http://$instancePublicIp:8080/{proxy}"
@@ -399,7 +388,6 @@ class Runner : Runnable {
             val staticSiteBehavior = BehaviorOptions.builder()
                 .allowedMethods(AllowedMethods.ALLOW_ALL)
                 .origin(staticSiteOrigin)
-                .viewerProtocolPolicy(ViewerProtocolPolicy.REDIRECT_TO_HTTPS)
                 .build()
             val errorResponse = ErrorResponse
                 .builder()
@@ -409,40 +397,21 @@ class Runner : Runnable {
                 .build()
             val errorResponses = listOf(errorResponse)
             val httpOrigin = HttpOrigin.Builder.create(Names.apiDomainName).build()
-            val allCookies = OriginRequestPolicy.Builder.create(this, Names.allCookiesPolicy).cookieBehavior(OriginRequestCookieBehavior.all()).build()
-            val proxyBehavior = BehaviorOptions
-                .builder()
-                .origin(httpOrigin)
-                .originRequestPolicy(allCookies)
-                .viewerProtocolPolicy(ViewerProtocolPolicy.REDIRECT_TO_HTTPS)
-                .allowedMethods(AllowedMethods.ALLOW_ALL)
-                .build()
+            val proxyBehavior = BehaviorOptions.builder().origin(httpOrigin).build()
             val additionalBehaviors = mapOf("/proxy/*" to proxyBehavior)
-            val hostedZoneProviderProps = HostedZoneProviderProps
-                .builder()
-                .domainName(Names.appDomainName)
-                .build()
-            val hostedZone = HostedZone.fromLookup(this, Names.appHostedZoneCdkId, hostedZoneProviderProps)
-            val certificate = Certificate.fromCertificateArn(this, Names.appCertificateId, Names.appCertificateArn)
-            val domainName = DomainName
-                .Builder
-                .create(this, Names.appDomainId)
-                .domainName(Names.appDomainName)
-                .certificate(certificate)
-                .build()
-            val domainNames = listOf(domainName.name)
-            val distribution = Distribution.Builder.create(this, Names.appDistributionName)
+            val distribution = Distribution.Builder.create(this, Names.distributionName)
                 .defaultBehavior(staticSiteBehavior)
-                .certificate(certificate)
                 .additionalBehaviors(additionalBehaviors)
                 .errorResponses(errorResponses)
                 .defaultRootObject("index.html")
-                .domainNames(domainNames)
                 .build()
-            val cloudFrontTarget = CloudFrontTarget(distribution)
-            val recordTarget = RecordTarget.fromAlias(cloudFrontTarget)
-            ARecord.Builder.create(this, Names.appAlias).zone(hostedZone).target(recordTarget).build()
             return distribution
         }
     }
 }
+/*
+Cannot use resource in a cross-environment fashion, the resource's physical name must be explicit set or use `PhysicalName.GENERATE_IF_NEEDED`
+
+cdk bootstrap Need to perform AWS calls for account but the current credentials are for
+cdk bootstrap aws://964638509728/us-west-1 aws://964638509728/us-east-1
+ */

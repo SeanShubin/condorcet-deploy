@@ -1,14 +1,30 @@
 # Condorcet Deploy
 Deploys condorcet voting application to amazon web services via the cloud deployment kit
 
+## Environment
+- account
+  - 964638509728
+- region
+  - us-east-1
+
 ## Prerequisites
+
 `npm install -g aws-cdk`
+`aws configure`
+`cdk bootstrap aws://964638509728/us-west-1 aws://964638509728/us-east-1`
 `cdk --version`
 
 ## Manual Steps
 - Create a keypair
 - Register a domain
-- 
+- Create a cloudfront origin request policy "AllCookies"
+
+## Aws Credentials
+- to list credentials
+  - cat ~/.aws/credentials
+- to switch credentials
+  - export AWS_PROFILE=sean-personal
+
 
 ## Scripts
 - provision
