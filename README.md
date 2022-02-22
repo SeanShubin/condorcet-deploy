@@ -1,6 +1,11 @@
 # Condorcet Deploy
 Deploys condorcet voting application to amazon web services via the cloud deployment kit
 
+## Todo List
+- get it working from a single domain
+- figure out cross region stacks
+- implement backup/restore
+
 ## Environment
 - account
   - 964638509728
@@ -17,7 +22,7 @@ Deploys condorcet voting application to amazon web services via the cloud deploy
 ## Manual Steps
 - Create a keypair
 - Register a domain
-- Create a cloudfront origin request policy "AllCookies"
+- Get Certificates
 
 ## Aws Credentials
 - to list credentials

@@ -7,8 +7,6 @@ import software.amazon.awscdk.services.apigatewayv2.alpha.DomainMappingOptions
 import software.amazon.awscdk.services.apigatewayv2.alpha.HttpApi
 import software.amazon.awscdk.services.apigatewayv2.alpha.HttpMethod
 import software.amazon.awscdk.services.apigatewayv2.integrations.alpha.HttpUrlIntegration
-import software.amazon.awscdk.services.certificatemanager.DnsValidatedCertificate
-import software.amazon.awscdk.services.certificatemanager.ICertificate
 import software.amazon.awscdk.services.certificatemanager.Certificate
 import software.amazon.awscdk.services.cloudfront.*
 import software.amazon.awscdk.services.cloudfront.origins.HttpOrigin
@@ -44,7 +42,7 @@ class Runner : Runnable {
         const val vpcStackId = "${prefix}VpcStack"
         const val databaseStackId = "${prefix}DatabaseStack"
         const val appStackId = "${prefix}AppStack"
-        const val lastStackId = "${prefix}LastStack"
+        const val websiteStackId = "${prefix}WebsiteStack"
         const val vpcId = "${prefix}Vpc"
         const val securityGroupId = "${prefix}SecurityGroup"
         const val ec2InstanceId = "${prefix}Ec2Id"
@@ -101,7 +99,7 @@ class Runner : Runnable {
             vpcStack.databasePassword,
             stackProps
         )
-        val lastStack = LastStack(
+        val websiteStack = WebsiteStack(
             app,
             applicationStack.ec2,
             applicationStack.bucketWithFilesForWebsite,
@@ -291,7 +289,8 @@ class Runner : Runnable {
                 "DATABASE_PASSWORD=\$(aws secretsmanager get-secret-value --region ${EnvironmentConstants.region} --output text --query SecretString --secret-id ${databasePassword.secretName})",
                 "java -jar edit-json.jar secrets/secret-configuration.json set string \$DATABASE_PASSWORD database root password",
                 "java -jar edit-json.jar secrets/secret-configuration.json set string \$DATABASE_PASSWORD database immutable password",
-                "java -jar edit-json.jar secrets/secret-configuration.json set string \$DATABASE_PASSWORD database mutable password"
+                "java -jar edit-json.jar secrets/secret-configuration.json set string \$DATABASE_PASSWORD database mutable password",
+                "java -jar condorcet-backend-console.jar restore"
             )
             val content = lines.joinToString("\n", "", "\n")
             val initializeContent = InitFile.fromString("/home/ec2-user/initialize.sh", content, executable)
@@ -343,12 +342,12 @@ class Runner : Runnable {
 
     }
 
-    class LastStack(
+    class WebsiteStack(
         scope: Construct,
         ec2: Instance,
         staticSiteBucket: Bucket,
         stackProps:StackProps
-    ) : Stack(scope, Names.lastStackId, stackProps) {
+    ) : Stack(scope, Names.websiteStackId, stackProps) {
         val api = createApi(ec2)
         val distribution = createCloudfrontDistribution(staticSiteBucket, api)
 

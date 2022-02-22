@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-cdk destroy --force CondorcetAppStack
+cdk destroy --force CondorcetAppStack CondorcetWebsiteStack
