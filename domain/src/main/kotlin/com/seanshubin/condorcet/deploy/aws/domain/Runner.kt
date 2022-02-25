@@ -37,6 +37,7 @@ class Runner : Runnable {
         const val account = "964638509728"
         const val region = "us-east-1"
     }
+
     object Names {
         private const val prefix = "Condorcet"
         const val vpcStackId = "${prefix}VpcStack"
@@ -60,19 +61,20 @@ class Runner : Runnable {
         const val apiName = "${prefix}Api"
         const val urlIntegration = "${prefix}UrlIntegration"
         const val allCookiesPolicy = "${prefix}AllCookiesPolicy"
-        const val allCookiesPolicyId = "a915f680-5340-4b60-b36f-5ec318bd9b56"
         const val apiDistributionName = "${prefix}ApiDistribution"
         const val appDistributionName = "${prefix}AppDistribution"
         const val databasePassword = "${prefix}DatabasePassword"
         const val apiDomainId = "${prefix}ApiDomainId"
-        const val apiCertificateArn = "arn:aws:acm:us-east-1:964638509728:certificate/9e407996-9bc4-4bf5-a7c1-9aea15b848cf"
+        const val apiCertificateArn =
+            "arn:aws:acm:us-east-1:964638509728:certificate/9e407996-9bc4-4bf5-a7c1-9aea15b848cf"
         const val apiHostedZoneCdkId = "${prefix}ApiHostedZone"
         const val apiDomainName = "pairwisevote.org"
         const val apiCertificateId = "${prefix}ApiCertificate"
         const val apiAlias = "${prefix}ApiAlias"
         const val apiHostedZoneId = "Z03310473GG6WYXYEU0FD"
         const val appDomainId = "${prefix}AppDomainId"
-        const val appCertificateArn = "arn:aws:acm:us-east-1:964638509728:certificate/f703477d-855c-48df-bc4f-74207cb80bc7"
+        const val appCertificateArn =
+            "arn:aws:acm:us-east-1:964638509728:certificate/f703477d-855c-48df-bc4f-74207cb80bc7"
         const val appHostedZoneCdkId = "${prefix}AppHostedZone"
         const val appDomainName = "pairwisevote.com"
         const val appCertificateId = "${prefix}AppCertificate"
@@ -108,12 +110,12 @@ class Runner : Runnable {
         app.synth()
     }
 
-    fun createStackProps():StackProps {
+    fun createStackProps(): StackProps {
         val environment = createEnvironment()
         return StackProps.builder().env(environment).build()
     }
 
-    fun createEnvironment():Environment{
+    fun createEnvironment(): Environment {
         return Environment
             .builder()
             .account(EnvironmentConstants.account)
@@ -123,7 +125,7 @@ class Runner : Runnable {
 
     class VpcStack(
         scope: Construct,
-        stackProps:StackProps
+        stackProps: StackProps
     ) : Stack(scope, Names.vpcStackId, stackProps) {
         val vpc: Vpc = createVpc()
         val securityGroup: SecurityGroup = createSecurityGroup(vpc)
@@ -186,7 +188,7 @@ class Runner : Runnable {
         vpc: Vpc,
         securityGroup: SecurityGroup,
         databasePassword: Secret,
-        stackProps:StackProps
+        stackProps: StackProps
     ) : Stack(scope, Names.databaseStackId, stackProps) {
         val database: DatabaseInstance = createDatabase(vpc, securityGroup, databasePassword)
         private fun createDatabase(
@@ -204,7 +206,6 @@ class Runner : Runnable {
                 .subnetType(SubnetType.PRIVATE_ISOLATED)
                 .build()
             val database = DatabaseInstance.Builder.create(this, Names.databaseInstanceId)
-                .databaseName(Names.databaseName)
                 .engine(DatabaseInstanceEngine.MYSQL)
                 .credentials(Credentials.fromGeneratedSecret("root"))
                 .vpc(vpc)
@@ -227,7 +228,7 @@ class Runner : Runnable {
         securityGroup: SecurityGroup,
         database: DatabaseInstance,
         databasePassword: Secret,
-        stackProps:StackProps
+        stackProps: StackProps
     ) : Stack(scope, Names.appStackId, stackProps) {
         val bucketWithFilesForEc2 = createFilesForEc2Bucket()
         val ec2 = createEc2Instance(
@@ -251,6 +252,11 @@ class Runner : Runnable {
                 .destinationBucket(bucket)
                 .build()
             return bucket
+        }
+
+        private fun createFile(name: String, lines: List<String>, options: InitFileOptions): InitElement {
+            val content = lines.joinToString("\n", "", "\n")
+            return InitFile.fromString(name, content, options)
         }
 
         private fun createEc2Instance(
@@ -282,18 +288,30 @@ class Runner : Runnable {
             val copyJavaArchiveForServer = InitSource.fromS3Object("/home/ec2-user", bucket, "backend.zip")
             val copySystemdEntry = InitSource.fromS3Object("/etc/systemd/system", bucket, "systemd.zip")
             val launchServer = InitCommand.argvCommand(listOf("systemctl", "start", "condorcet-backend"))
-            val lines = listOf(
-                "java -jar edit-json.jar configuration.json set string ${database.dbInstanceEndpointAddress} database root host",
-                "java -jar edit-json.jar configuration.json set string ${database.dbInstanceEndpointAddress} database immutable host",
-                "java -jar edit-json.jar configuration.json set string ${database.dbInstanceEndpointAddress} database mutable host",
-                "DATABASE_PASSWORD=\$(aws secretsmanager get-secret-value --region ${EnvironmentConstants.region} --output text --query SecretString --secret-id ${databasePassword.secretName})",
-                "java -jar edit-json.jar secrets/secret-configuration.json set string \$DATABASE_PASSWORD database root password",
-                "java -jar edit-json.jar secrets/secret-configuration.json set string \$DATABASE_PASSWORD database immutable password",
-                "java -jar edit-json.jar secrets/secret-configuration.json set string \$DATABASE_PASSWORD database mutable password",
-                "java -jar condorcet-backend-console.jar restore"
+            val setPasswordCommand =
+                "DATABASE_PASSWORD=\$(aws secretsmanager get-secret-value --region ${EnvironmentConstants.region} --output text --query SecretString --secret-id ${databasePassword.secretName})"
+            val initializeContent = createFile(
+                "/home/ec2-user/initialize.sh",
+                listOf(
+                    "java -jar edit-json.jar configuration.json set string ${database.dbInstanceEndpointAddress} database root host",
+                    "java -jar edit-json.jar configuration.json set string ${database.dbInstanceEndpointAddress} database immutable host",
+                    "java -jar edit-json.jar configuration.json set string ${database.dbInstanceEndpointAddress} database mutable host",
+                    setPasswordCommand,
+                    "java -jar edit-json.jar secrets/secret-configuration.json set string \$DATABASE_PASSWORD database root password",
+                    "java -jar edit-json.jar secrets/secret-configuration.json set string \$DATABASE_PASSWORD database immutable password",
+                    "java -jar edit-json.jar secrets/secret-configuration.json set string \$DATABASE_PASSWORD database mutable password",
+                    "java -jar condorcet-backend-console.jar restore"
+                ),
+                executable
             )
-            val content = lines.joinToString("\n", "", "\n")
-            val initializeContent = InitFile.fromString("/home/ec2-user/initialize.sh", content, executable)
+            val mySqlScript = createFile(
+                "/home/ec2-user/run-mysql.sh",
+                listOf(
+                    setPasswordCommand,
+                    "mysql --host=${database.dbInstanceEndpointAddress} --user=root --password=\$DATABASE_PASSWORD"
+                ),
+                executable
+            )
             val chown =
                 InitCommand.argvCommand(listOf("sudo", "chown", "-R", "ec2-user:ec2-user", "/home/ec2-user"))
             val initializeExec = InitCommand.shellCommand("./initialize.sh", userDir)
@@ -303,6 +321,7 @@ class Runner : Runnable {
                 copyJavaArchiveForServer,
                 copySystemdEntry,
                 initializeContent,
+                mySqlScript,
                 initializeExec,
                 chown,
                 launchServer
@@ -346,7 +365,7 @@ class Runner : Runnable {
         scope: Construct,
         ec2: Instance,
         staticSiteBucket: Bucket,
-        stackProps:StackProps
+        stackProps: StackProps
     ) : Stack(scope, Names.websiteStackId, stackProps) {
         val api = createApi(ec2)
         val distribution = createCloudfrontDistribution(staticSiteBucket, api)
@@ -364,7 +383,8 @@ class Runner : Runnable {
                 .domainName(Names.apiDomainName)
                 .certificate(certificate)
                 .build()
-            val domainProperties = ApiGatewayv2DomainProperties(domainName.regionalDomainName, domainName.regionalHostedZoneId)
+            val domainProperties =
+                ApiGatewayv2DomainProperties(domainName.regionalDomainName, domainName.regionalHostedZoneId)
             val recordTarget = RecordTarget.fromAlias(domainProperties)
             ARecord.Builder.create(this, Names.apiAlias).zone(hostedZone).target(recordTarget).build()
             val domainMappingOptions = DomainMappingOptions
@@ -408,7 +428,8 @@ class Runner : Runnable {
                 .build()
             val errorResponses = listOf(errorResponse)
             val httpOrigin = HttpOrigin.Builder.create(Names.apiDomainName).build()
-            val allCookies = OriginRequestPolicy.Builder.create(this, Names.allCookiesPolicy).cookieBehavior(OriginRequestCookieBehavior.all()).build()
+            val allCookies = OriginRequestPolicy.Builder.create(this, Names.allCookiesPolicy)
+                .cookieBehavior(OriginRequestCookieBehavior.all()).build()
             val proxyBehavior = BehaviorOptions
                 .builder()
                 .origin(httpOrigin)
@@ -445,3 +466,4 @@ class Runner : Runnable {
         }
     }
 }
+

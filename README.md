@@ -2,6 +2,9 @@
 Deploys condorcet voting application to amazon web services via the cloud deployment kit
 
 ## Todo List
+- do I need an ingress rule to access the database if I am in the same security group
+- test to see if RemovalPolicy.RETAIN connects back to the same database
+- can I generate the certificate dynamically?
 - get it working from a single domain
 - figure out cross region stacks
 - implement backup/restore
