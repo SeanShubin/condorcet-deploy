@@ -5,7 +5,6 @@ rm -rf generated/
 mkdir -p generated/backend
 cp ../condorcet-backend/console/target/condorcet-backend-console.jar generated/backend/
 cp ../condorcet-backend/data/sample-data.txt generated/backend/backup.txt
-cp ../mysql-connect-test/target/mysql-connect-test.jar generated/backend/
 cp ../json-console/app/target/json-console-app.jar generated/backend/edit-json.jar
 pushd generated/backend
 zip -r ../backend.zip .
