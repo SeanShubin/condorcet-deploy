@@ -31,7 +31,6 @@ import software.amazon.awscdk.services.secretsmanager.Secret
 import software.amazon.awscdk.services.secretsmanager.SecretStringGenerator
 import software.constructs.Construct
 
-
 class Runner : Runnable {
     object EnvironmentConstants {
         const val account = "964638509728"
@@ -49,7 +48,6 @@ class Runner : Runnable {
         const val ec2InstanceId = "${prefix}Ec2Id"
         const val ec2InstanceName = "${prefix}Ec2Name"
         const val databaseInstanceId = "${prefix}DatabaseId"
-        const val databaseName = "${prefix}DatabaseName"
         const val s3BucketNameForEc2Files = "${prefix}Ec2Bucket"
         const val s3BucketNameForWebsite = "${prefix}WebsiteBucket"
         const val s3BucketDeploymentNameForEc2Files = "${prefix}Ec2BucketDeploy"
@@ -289,7 +287,7 @@ class Runner : Runnable {
             val copySystemdEntry = InitSource.fromS3Object("/etc/systemd/system", bucket, "systemd.zip")
             val launchServer = InitCommand.argvCommand(listOf("systemctl", "start", "condorcet-backend"))
             val setPasswordCommand =
-                "DATABASE_PASSWORD=\$(aws secretsmanager get-secret-value --region ${EnvironmentConstants.region} --output text --query SecretString --secret-id ${databasePassword.secretName})"
+                "DATABASE_PASSWORD=\$(aws secretsmanager get-secret-value --region $region --output text --query SecretString --secret-id ${databasePassword.secretName})"
             val initializeContent = createFile(
                 "/home/ec2-user/initialize.sh",
                 listOf(
