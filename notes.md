@@ -75,3 +75,7 @@ Invalid certificate ARN: arn:aws:acm:us-east-1:964638509728:certificate/f703477d
 te must be in 'us-west-1'. (Service: AmazonApiGatewayV2; Status Code: 400; Error Code: BadRequestException; Request ID:
 6b4206a8-f2da-4a18-8f57-3f5db035f9b7; Proxy: null)
 ```
+
+## What should not be at the stack level
+- registered domain
+- certificate
