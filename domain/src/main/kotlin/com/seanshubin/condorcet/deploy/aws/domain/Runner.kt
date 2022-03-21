@@ -169,7 +169,6 @@ class Runner : Runnable {
             )
             return securityGroup
         }
-
         fun createDatabasePassword(): Secret {
             val secretStringGenerator = SecretStringGenerator.builder()
                 .excludePunctuation(true)
@@ -291,13 +290,13 @@ class Runner : Runnable {
             val initializeContent = createFile(
                 "/home/ec2-user/initialize.sh",
                 listOf(
-                    "java -jar edit-json.jar configuration.json set string ${database.dbInstanceEndpointAddress} database root host",
-                    "java -jar edit-json.jar configuration.json set string ${database.dbInstanceEndpointAddress} database immutable host",
-                    "java -jar edit-json.jar configuration.json set string ${database.dbInstanceEndpointAddress} database mutable host",
+                    "java -jar edit-json.jar local-config/configuration.json set string ${database.dbInstanceEndpointAddress} database root host",
+                    "java -jar edit-json.jar local-config/configuration.json set string ${database.dbInstanceEndpointAddress} database immutable host",
+                    "java -jar edit-json.jar local-config/configuration.json set string ${database.dbInstanceEndpointAddress} database mutable host",
                     setPasswordCommand,
-                    "java -jar edit-json.jar secrets/secret-configuration.json set string \$DATABASE_PASSWORD database root password",
-                    "java -jar edit-json.jar secrets/secret-configuration.json set string \$DATABASE_PASSWORD database immutable password",
-                    "java -jar edit-json.jar secrets/secret-configuration.json set string \$DATABASE_PASSWORD database mutable password",
+                    "java -jar edit-json.jar local-config/secrets/secret-configuration.json set string \$DATABASE_PASSWORD database root password",
+                    "java -jar edit-json.jar local-config/secrets/secret-configuration.json set string \$DATABASE_PASSWORD database immutable password",
+                    "java -jar edit-json.jar local-config/secrets/secret-configuration.json set string \$DATABASE_PASSWORD database mutable password",
                     "java -jar condorcet-backend-console.jar restore"
                 ),
                 executable
@@ -320,6 +319,7 @@ class Runner : Runnable {
                 copySystemdEntry,
                 initializeContent,
                 mySqlScript,
+                chown,
                 initializeExec,
                 chown,
                 launchServer
@@ -434,6 +434,7 @@ class Runner : Runnable {
                 .originRequestPolicy(allCookies)
                 .viewerProtocolPolicy(ViewerProtocolPolicy.REDIRECT_TO_HTTPS)
                 .allowedMethods(AllowedMethods.ALLOW_ALL)
+                .cachePolicy(CachePolicy.CACHING_DISABLED)
                 .build()
             val additionalBehaviors = mapOf("/proxy/*" to proxyBehavior)
             val hostedZoneProviderProps = HostedZoneProviderProps
