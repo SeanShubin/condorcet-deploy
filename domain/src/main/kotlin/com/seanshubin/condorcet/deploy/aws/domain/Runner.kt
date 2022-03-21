@@ -395,13 +395,13 @@ class Runner : Runnable {
                 .defaultDomainMapping(domainMappingOptions)
                 .build()
             val instancePublicIp = ec2.instancePublicIp
-            val url = "http://$instancePublicIp:8080/{proxy}"
+            val url = "http://$instancePublicIp:8080/{api}"
             val integration = HttpUrlIntegration.Builder.create(Names.urlIntegration, url)
                 .method(HttpMethod.ANY)
                 .build()
             val addRoutesOptions = AddRoutesOptions.builder()
                 .methods(listOf(HttpMethod.ANY))
-                .path("/proxy/{proxy+}")
+                .path("/api/{api+}")
                 .integration(integration)
                 .build()
             httpApi.addRoutes(addRoutesOptions)
@@ -428,7 +428,7 @@ class Runner : Runnable {
             val httpOrigin = HttpOrigin.Builder.create(Names.apiDomainName).build()
             val allCookies = OriginRequestPolicy.Builder.create(this, Names.allCookiesPolicy)
                 .cookieBehavior(OriginRequestCookieBehavior.all()).build()
-            val proxyBehavior = BehaviorOptions
+            val apiBehavior = BehaviorOptions
                 .builder()
                 .origin(httpOrigin)
                 .originRequestPolicy(allCookies)
@@ -436,7 +436,7 @@ class Runner : Runnable {
                 .allowedMethods(AllowedMethods.ALLOW_ALL)
                 .cachePolicy(CachePolicy.CACHING_DISABLED)
                 .build()
-            val additionalBehaviors = mapOf("/proxy/*" to proxyBehavior)
+            val additionalBehaviors = mapOf("/api/*" to apiBehavior)
             val hostedZoneProviderProps = HostedZoneProviderProps
                 .builder()
                 .domainName(Names.appDomainName)
