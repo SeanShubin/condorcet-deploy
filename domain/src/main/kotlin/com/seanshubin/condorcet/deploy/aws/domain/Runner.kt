@@ -1,5 +1,7 @@
 package com.seanshubin.condorcet.deploy.aws.domain
 
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.seanshubin.condorcet.deploy.aws.json.JsonMappers
 import software.amazon.awscdk.*
 import software.amazon.awscdk.services.apigatewayv2.alpha.DomainName
 import software.amazon.awscdk.services.apigatewayv2.alpha.AddRoutesOptions
@@ -8,6 +10,8 @@ import software.amazon.awscdk.services.apigatewayv2.alpha.HttpApi
 import software.amazon.awscdk.services.apigatewayv2.alpha.HttpMethod
 import software.amazon.awscdk.services.apigatewayv2.integrations.alpha.HttpUrlIntegration
 import software.amazon.awscdk.services.certificatemanager.Certificate
+import software.amazon.awscdk.services.certificatemanager.CertificateProps
+import software.amazon.awscdk.services.certificatemanager.CertificateValidation
 import software.amazon.awscdk.services.cloudfront.*
 import software.amazon.awscdk.services.cloudfront.origins.HttpOrigin
 import software.amazon.awscdk.services.cloudfront.origins.S3Origin
@@ -30,13 +34,10 @@ import software.amazon.awscdk.services.s3.deployment.Source
 import software.amazon.awscdk.services.secretsmanager.Secret
 import software.amazon.awscdk.services.secretsmanager.SecretStringGenerator
 import software.constructs.Construct
+import java.nio.file.Files
+import java.nio.file.Paths
 
 class Runner : Runnable {
-    object EnvironmentConstants {
-        const val account = "964638509728"
-        const val region = "us-east-1"
-    }
-
     object Names {
         private const val prefix = "Condorcet"
         const val vpcStackId = "${prefix}VpcStack"
@@ -59,25 +60,33 @@ class Runner : Runnable {
         const val apiName = "${prefix}Api"
         const val urlIntegration = "${prefix}UrlIntegration"
         const val allCookiesPolicy = "${prefix}AllCookiesPolicy"
-        const val apiDistributionName = "${prefix}ApiDistribution"
         const val appDistributionName = "${prefix}AppDistribution"
         const val databasePassword = "${prefix}DatabasePassword"
         const val apiDomainId = "${prefix}ApiDomainId"
-        const val apiCertificateArn =
-            "arn:aws:acm:us-east-1:964638509728:certificate/9e407996-9bc4-4bf5-a7c1-9aea15b848cf"
-        const val apiHostedZoneCdkId = "${prefix}ApiHostedZone"
-        const val apiDomainName = "pairwisevote.org"
+        const val hostedZoneCdkId = "${prefix}HostedZone"
         const val apiCertificateId = "${prefix}ApiCertificate"
         const val apiAlias = "${prefix}ApiAlias"
-        const val apiHostedZoneId = "Z03310473GG6WYXYEU0FD"
         const val appDomainId = "${prefix}AppDomainId"
-        const val appCertificateArn =
-            "arn:aws:acm:us-east-1:964638509728:certificate/f703477d-855c-48df-bc4f-74207cb80bc7"
-        const val appHostedZoneCdkId = "${prefix}AppHostedZone"
-        const val appDomainName = "pairwisevote.com"
         const val appCertificateId = "${prefix}AppCertificate"
-        const val appHostedZoneId = "Z09386273B4IXDJHAW23A"
         const val appAlias = "${prefix}AppAlias"
+    }
+
+    private fun loadFromConfig(vararg pathParts:String):String {
+        val configFilePath = Paths.get("local-config", "current.json")
+        val jsonText = Files.readString(configFilePath)
+        val jsonObject:Map<String, Any> = JsonMappers.parser.readValue(jsonText)
+        return loadFromObject(jsonObject, *pathParts)
+    }
+
+    private fun loadFromObject(jsonObject:Map<String, Any>, vararg pathParts:String):String {
+        val currentPathPart = pathParts[0]
+        return if(pathParts.size == 1) {
+            jsonObject.getValue(currentPathPart) as String
+        } else {
+            val nestedObject =jsonObject.getValue(currentPathPart) as Map<String, Any>
+            val remainingPathParts = pathParts.drop(1).toTypedArray()
+            loadFromObject(nestedObject,*remainingPathParts)
+        }
     }
 
     override fun run() {
@@ -99,11 +108,17 @@ class Runner : Runnable {
             vpcStack.databasePassword,
             stackProps
         )
+        val baseDomainName = loadFromConfig("domain", "base")
+        val apiDomainName = loadFromConfig("domain", "api")
+        val appDomainName = loadFromConfig("domain", "app")
         val websiteStack = WebsiteStack(
             app,
             applicationStack.ec2,
             applicationStack.bucketWithFilesForWebsite,
-            stackProps
+            stackProps,
+            baseDomainName,
+            apiDomainName,
+            appDomainName
         )
         app.synth()
     }
@@ -114,10 +129,12 @@ class Runner : Runnable {
     }
 
     fun createEnvironment(): Environment {
+        val account = System.getenv("CDK_DEFAULT_ACCOUNT")
+        val region = System.getenv("CDK_DEFAULT_REGION")
         return Environment
             .builder()
-            .account(EnvironmentConstants.account)
-            .region(EnvironmentConstants.region)
+            .account(account)
+            .region(region)
             .build()
     }
 
@@ -169,6 +186,7 @@ class Runner : Runnable {
             )
             return securityGroup
         }
+
         fun createDatabasePassword(): Secret {
             val secretStringGenerator = SecretStringGenerator.builder()
                 .excludePunctuation(true)
@@ -350,7 +368,8 @@ class Runner : Runnable {
                 .build()
             val s3Files = Source.asset("generated/s3/website")
             val deploySources = listOf(s3Files)
-            val bucketDeployment = BucketDeployment.Builder.create(this, Names.s3BucketDeploymentNameForWebsite)
+            val bucketDeployment = BucketDeployment.Builder
+                .create(this, Names.s3BucketDeploymentNameForWebsite)
                 .sources(deploySources)
                 .destinationBucket(bucket)
                 .build()
@@ -363,28 +382,47 @@ class Runner : Runnable {
         scope: Construct,
         ec2: Instance,
         staticSiteBucket: Bucket,
-        stackProps: StackProps
+        stackProps: StackProps,
+        baseDomainName:String,
+        apiDomainName:String,
+        appDomainName:String
     ) : Stack(scope, Names.websiteStackId, stackProps) {
-        val api = createApi(ec2)
-        val distribution = createCloudfrontDistribution(staticSiteBucket, api)
+        val hostedZoneProviderProps = HostedZoneProviderProps
+            .builder()
+            .domainName(baseDomainName)
+            .build()
+        val hostedZone = HostedZone.fromLookup(
+            this,
+            Names.hostedZoneCdkId,
+            hostedZoneProviderProps
+        )
+        val api = createApi(ec2, apiDomainName)
+        val distribution = createCloudfrontDistribution(staticSiteBucket, api, apiDomainName, appDomainName)
 
-        private fun createApi(ec2: Instance): HttpApi {
-            val hostedZoneProviderProps = HostedZoneProviderProps
+        private fun createApi(ec2: Instance, apiDomainName:String): HttpApi {
+            val certificateValidation = CertificateValidation.fromDns(hostedZone)
+            val certificateProps = CertificateProps
                 .builder()
-                .domainName(Names.apiDomainName)
+                .domainName(apiDomainName)
+                .validation(certificateValidation)
                 .build()
-            val hostedZone = HostedZone.fromLookup(this, Names.apiHostedZoneCdkId, hostedZoneProviderProps)
-            val certificate = Certificate.fromCertificateArn(this, Names.apiCertificateId, Names.apiCertificateArn)
+            val certificate = Certificate(this, Names.apiCertificateId, certificateProps)
             val domainName = DomainName
                 .Builder
                 .create(this, Names.apiDomainId)
-                .domainName(Names.apiDomainName)
+                .domainName(apiDomainName)
                 .certificate(certificate)
                 .build()
             val domainProperties =
                 ApiGatewayv2DomainProperties(domainName.regionalDomainName, domainName.regionalHostedZoneId)
             val recordTarget = RecordTarget.fromAlias(domainProperties)
-            ARecord.Builder.create(this, Names.apiAlias).zone(hostedZone).target(recordTarget).build()
+            ARecord
+                .Builder
+                .create(this, Names.apiAlias)
+                .zone(hostedZone)
+                .recordName(apiDomainName)
+                .target(recordTarget)
+                .build()
             val domainMappingOptions = DomainMappingOptions
                 .builder()
                 .domainName(domainName)
@@ -410,7 +448,9 @@ class Runner : Runnable {
 
         private fun createCloudfrontDistribution(
             staticSiteBucket: Bucket,
-            api: HttpApi
+            api: HttpApi,
+            apiDomainName:String,
+            appDomainName:String
         ): Distribution {
             val staticSiteOrigin = S3Origin.Builder.create(staticSiteBucket).build()
             val staticSiteBehavior = BehaviorOptions.builder()
@@ -425,7 +465,7 @@ class Runner : Runnable {
                 .responsePagePath("/index.html")
                 .build()
             val errorResponses = listOf(errorResponse)
-            val httpOrigin = HttpOrigin.Builder.create(Names.apiDomainName).build()
+            val httpOrigin = HttpOrigin.Builder.create(apiDomainName).build()
             val allCookies = OriginRequestPolicy.Builder.create(this, Names.allCookiesPolicy)
                 .cookieBehavior(OriginRequestCookieBehavior.all()).build()
             val apiBehavior = BehaviorOptions
@@ -437,16 +477,17 @@ class Runner : Runnable {
                 .cachePolicy(CachePolicy.CACHING_DISABLED)
                 .build()
             val additionalBehaviors = mapOf("/api/*" to apiBehavior)
-            val hostedZoneProviderProps = HostedZoneProviderProps
+            val certificateValidation = CertificateValidation.fromDns(hostedZone)
+            val certificateProps = CertificateProps
                 .builder()
-                .domainName(Names.appDomainName)
+                .domainName(appDomainName)
+                .validation(certificateValidation)
                 .build()
-            val hostedZone = HostedZone.fromLookup(this, Names.appHostedZoneCdkId, hostedZoneProviderProps)
-            val certificate = Certificate.fromCertificateArn(this, Names.appCertificateId, Names.appCertificateArn)
+            val certificate = Certificate(this, Names.appCertificateId, certificateProps)
             val domainName = DomainName
                 .Builder
                 .create(this, Names.appDomainId)
-                .domainName(Names.appDomainName)
+                .domainName(appDomainName)
                 .certificate(certificate)
                 .build()
             val domainNames = listOf(domainName.name)
@@ -460,7 +501,13 @@ class Runner : Runnable {
                 .build()
             val cloudFrontTarget = CloudFrontTarget(distribution)
             val recordTarget = RecordTarget.fromAlias(cloudFrontTarget)
-            ARecord.Builder.create(this, Names.appAlias).zone(hostedZone).target(recordTarget).build()
+            ARecord
+                .Builder
+                .create(this, Names.appAlias)
+                .zone(hostedZone)
+                .recordName(appDomainName)
+                .target(recordTarget)
+                .build()
             return distribution
         }
     }

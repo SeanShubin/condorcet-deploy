@@ -28,6 +28,9 @@ Deploys condorcet voting application to amazon web services via the cloud deploy
 - Register a domain
 - Get Certificates
 
+## Generate Public Key
+- ssh-keygen -y -f CondorcetKey.pem > CondorcetKey.pub
+
 ## Aws Credentials
 - to list credentials
   - cat ~/.aws/credentials
