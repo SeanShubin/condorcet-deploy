@@ -71,17 +71,23 @@ class Runner : Runnable {
         const val appAlias = "${prefix}AppAlias"
     }
 
-    private fun loadFromConfig(vararg pathParts:String):String {
+    private fun loadFromConfig(vararg pathParts:String):Any {
         val configFilePath = Paths.get("local-config", "current.json")
         val jsonText = Files.readString(configFilePath)
         val jsonObject:Map<String, Any> = JsonMappers.parser.readValue(jsonText)
         return loadFromObject(jsonObject, *pathParts)
     }
 
-    private fun loadFromObject(jsonObject:Map<String, Any>, vararg pathParts:String):String {
+    private fun loadStringFromConfig(vararg pathParts:String):String =
+        loadFromConfig(*pathParts) as String
+
+    private fun loadBooleanFromConfig(vararg pathParts:String):Boolean =
+        loadFromConfig(*pathParts) as Boolean
+
+    private fun loadFromObject(jsonObject:Map<String, Any>, vararg pathParts:String):Any {
         val currentPathPart = pathParts[0]
         return if(pathParts.size == 1) {
-            jsonObject.getValue(currentPathPart) as String
+            jsonObject.getValue(currentPathPart)
         } else {
             val nestedObject =jsonObject.getValue(currentPathPart) as Map<String, Any>
             val remainingPathParts = pathParts.drop(1).toTypedArray()
@@ -92,7 +98,11 @@ class Runner : Runnable {
     override fun run() {
         val app = App()
         val stackProps = createStackProps()
-        val vpcStack = VpcStack(app, stackProps)
+        val baseDomainName = loadStringFromConfig("domain", "base")
+        val apiDomainName = loadStringFromConfig("domain", "api")
+        val appDomainName = loadStringFromConfig("domain", "app")
+        val allowSsh = loadBooleanFromConfig("security", "allowSsh")
+        val vpcStack = VpcStack(app, stackProps, allowSsh)
         val databaseStack = DatabaseStack(
             app,
             vpcStack.vpc,
@@ -108,9 +118,6 @@ class Runner : Runnable {
             vpcStack.databasePassword,
             stackProps
         )
-        val baseDomainName = loadFromConfig("domain", "base")
-        val apiDomainName = loadFromConfig("domain", "api")
-        val appDomainName = loadFromConfig("domain", "app")
         val websiteStack = WebsiteStack(
             app,
             applicationStack.ec2,
@@ -140,10 +147,11 @@ class Runner : Runnable {
 
     class VpcStack(
         scope: Construct,
-        stackProps: StackProps
+        stackProps: StackProps,
+        allowSsh:Boolean
     ) : Stack(scope, Names.vpcStackId, stackProps) {
         val vpc: Vpc = createVpc()
-        val securityGroup: SecurityGroup = createSecurityGroup(vpc)
+        val securityGroup: SecurityGroup = createSecurityGroup(vpc, allowSsh)
         val databasePassword: Secret = createDatabasePassword()
         fun createVpc(): Vpc {
             val publicSubnet = SubnetConfiguration.builder()
@@ -165,7 +173,7 @@ class Runner : Runnable {
             return vpc
         }
 
-        private fun createSecurityGroup(vpc: Vpc): SecurityGroup {
+        private fun createSecurityGroup(vpc: Vpc, allowSsh:Boolean): SecurityGroup {
             val securityGroup = SecurityGroup.Builder.create(this, Names.securityGroupId)
                 .vpc(vpc)
                 .build()
@@ -174,11 +182,13 @@ class Runner : Runnable {
                 Port.tcp(8080),
                 "Allow HTTP debug from anywhere"
             )
-            securityGroup.addIngressRule(
-                Peer.anyIpv4(),
-                Port.tcp(22),
-                "Allow SSH from anywhere"
-            )
+            if(allowSsh) {
+                securityGroup.addIngressRule(
+                    Peer.anyIpv4(),
+                    Port.tcp(22),
+                    "Allow SSH from anywhere"
+                )
+            }
             securityGroup.addIngressRule(
                 Peer.anyIpv4(),
                 Port.tcp(3306),
