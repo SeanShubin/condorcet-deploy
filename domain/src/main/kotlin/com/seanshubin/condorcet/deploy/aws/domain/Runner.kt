@@ -137,7 +137,7 @@ class Runner : Runnable {
 
     fun createEnvironment(): Environment {
         val account = System.getenv("CDK_DEFAULT_ACCOUNT")
-        val region = System.getenv("CDK_DEFAULT_REGION")
+        val region = "us-east-1" //System.getenv("CDK_DEFAULT_REGION")
         return Environment
             .builder()
             .account(account)
