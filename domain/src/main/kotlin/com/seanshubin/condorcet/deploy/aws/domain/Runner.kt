@@ -16,9 +16,7 @@ import software.amazon.awscdk.services.cloudfront.*
 import software.amazon.awscdk.services.cloudfront.origins.HttpOrigin
 import software.amazon.awscdk.services.cloudfront.origins.S3Origin
 import software.amazon.awscdk.services.ec2.*
-import software.amazon.awscdk.services.iam.ManagedPolicy
-import software.amazon.awscdk.services.iam.Role
-import software.amazon.awscdk.services.iam.ServicePrincipal
+import software.amazon.awscdk.services.iam.*
 import software.amazon.awscdk.services.rds.Credentials
 import software.amazon.awscdk.services.rds.DatabaseInstance
 import software.amazon.awscdk.services.rds.DatabaseInstanceEngine
@@ -40,6 +38,13 @@ import java.nio.file.Paths
 class Runner : Runnable {
     object Names {
         private const val prefix = "Condorcet"
+        const val emailUserId = "${prefix}EmailUserId"
+        const val emailUserName = "${prefix}EmailUserName"
+        const val emailPolicyId = "${prefix}EmailPolicyId"
+        const val emailPolicyName = "${prefix}EmailPolicyName"
+        const val emailAccessKeyId = "${prefix}AccessKeyId"
+        const val emailPasswordName = "${prefix}EmailPasswordName"
+        const val emailPasswordId = "${prefix}EmailPasswordId"
         const val vpcStackId = "${prefix}VpcStack"
         const val databaseStackId = "${prefix}DatabaseStack"
         const val appStackId = "${prefix}AppStack"
@@ -291,6 +296,36 @@ class Runner : Runnable {
             database: DatabaseInstance,
             databasePassword: Secret
         ): Instance {
+            val emailUser = User
+                .Builder
+                .create(this, Names.emailUserId)
+                .userName(Names.emailUserName)
+                .build()
+            val sendRawEmail = "ses:SendRawEmail"
+            val allowSendEmail = PolicyStatement
+                .Builder
+                .create()
+                .effect(Effect.ALLOW)
+                .actions(listOf(sendRawEmail))
+                .resources(listOf("*"))
+                .build()
+            val sendEmailPolicy = Policy
+                .Builder
+                .create(this, Names.emailPolicyId)
+                .policyName(Names.emailPolicyName)
+                .statements(listOf(allowSendEmail))
+                .build()
+            emailUser.attachInlinePolicy(sendEmailPolicy)
+            val accessKey = AccessKey
+                .Builder
+                .create(this, Names.emailAccessKeyId)
+                .user(emailUser)
+                .build()
+            Secret
+                .Builder
+                .create(this, Names.emailPasswordId)
+                .secretName(Names.emailPasswordName)
+                .build()
             val servicePrincipal = ServicePrincipal("ec2.amazonaws.com")
             val s3ReadOnlyAccess = ManagedPolicy.fromAwsManagedPolicyName("AmazonS3ReadOnlyAccess")
             val accessSecretsManager = ManagedPolicy.fromAwsManagedPolicyName("SecretsManagerReadWrite")
