@@ -10,5 +10,9 @@
   "hosted-zone:account=964638509728:domainName=pairwisevote.com:region=us-east-1": {
     "Id": "/hostedzone/Z09386273B4IXDJHAW23A",
     "Name": "pairwisevote.com."
+  },
+  "hosted-zone:account=964638509728:domainName=pairwisevote.org:region=us-east-1": {
+    "Id": "/hostedzone/Z03310473GG6WYXYEU0FD",
+    "Name": "pairwisevote.org."
   }
 }

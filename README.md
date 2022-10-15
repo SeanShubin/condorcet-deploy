@@ -10,6 +10,17 @@ Deploys condorcet voting application to amazon web services via the cloud deploy
 - implement backup/restore
 - password reset feature
 
+## How to create mail user
+- aws.amazon.com
+- set region to us-east-1
+- Amazon SES
+  - Verified Identities
+    - Domain
+      - specify domain
+    - Create Identity
+  - SMTP settings
+    - Create SMTP credentials
+
 ## Environment
 - account
   - 964638509728

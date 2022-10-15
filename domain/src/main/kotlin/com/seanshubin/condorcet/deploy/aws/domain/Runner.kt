@@ -69,6 +69,7 @@ class Runner : Runnable {
         const val appDomainId = "${prefix}AppDomainId"
         const val appCertificateId = "${prefix}AppCertificate"
         const val appAlias = "${prefix}AppAlias"
+        const val emailPasswordName = "${prefix}EmailPassword"
     }
 
     private fun loadFromConfig(vararg pathParts:String):Any {
@@ -102,6 +103,7 @@ class Runner : Runnable {
         val apiDomainName = loadStringFromConfig("domain", "api")
         val appDomainName = loadStringFromConfig("domain", "app")
         val allowSsh = loadBooleanFromConfig("security", "allowSsh")
+        val emailUser = loadStringFromConfig("mail", "user")
         val vpcStack = VpcStack(app, stackProps, allowSsh)
         val databaseStack = DatabaseStack(
             app,
@@ -116,7 +118,9 @@ class Runner : Runnable {
             vpcStack.securityGroup,
             databaseStack.database,
             vpcStack.databasePassword,
-            stackProps
+            stackProps,
+            baseDomainName,
+            emailUser
         )
         val websiteStack = WebsiteStack(
             app,
@@ -253,7 +257,9 @@ class Runner : Runnable {
         securityGroup: SecurityGroup,
         database: DatabaseInstance,
         databasePassword: Secret,
-        stackProps: StackProps
+        stackProps: StackProps,
+        baseDomainName:String,
+        emailUser:String
     ) : Stack(scope, Names.appStackId, stackProps) {
         val bucketWithFilesForEc2 = createFilesForEc2Bucket()
         val ec2 = createEc2Instance(
@@ -261,7 +267,9 @@ class Runner : Runnable {
             securityGroup,
             bucketWithFilesForEc2,
             database,
-            databasePassword
+            databasePassword,
+            baseDomainName,
+            emailUser
         )
         val bucketWithFilesForWebsite = createWebsiteBucket(ec2)
 
@@ -289,7 +297,9 @@ class Runner : Runnable {
             securityGroup: SecurityGroup,
             bucket: Bucket,
             database: DatabaseInstance,
-            databasePassword: Secret
+            databasePassword: Secret,
+            baseDomainName:String,
+            emailUser:String
         ): Instance {
             val servicePrincipal = ServicePrincipal("ec2.amazonaws.com")
             val s3ReadOnlyAccess = ManagedPolicy.fromAwsManagedPolicyName("AmazonS3ReadOnlyAccess")
@@ -314,18 +324,26 @@ class Runner : Runnable {
             val copyJavaArchiveForServer = InitSource.fromS3Object("/home/ec2-user", bucket, "backend.zip")
             val copySystemdEntry = InitSource.fromS3Object("/etc/systemd/system", bucket, "systemd.zip")
             val launchServer = InitCommand.argvCommand(listOf("systemctl", "start", "condorcet-backend"))
-            val setPasswordCommand =
+            val setDatabasePasswordCommand =
                 "DATABASE_PASSWORD=\$(aws secretsmanager get-secret-value --region $region --output text --query SecretString --secret-id ${databasePassword.secretName})"
+            val setEmailPasswordCommand =
+                "EMAIL_PASSWORD=\$(aws secretsmanager get-secret-value --region $region --output text --query SecretString --secret-id ${Names.emailPasswordName})"
             val initializeContent = createFile(
                 "/home/ec2-user/initialize.sh",
                 listOf(
                     "java -jar edit-json.jar local-config/configuration.json set string ${database.dbInstanceEndpointAddress} database root host",
                     "java -jar edit-json.jar local-config/configuration.json set string ${database.dbInstanceEndpointAddress} database immutable host",
                     "java -jar edit-json.jar local-config/configuration.json set string ${database.dbInstanceEndpointAddress} database mutable host",
-                    setPasswordCommand,
+                    "java -jar edit-json.jar local-config/configuration.json set string email-smtp.us-east-1.amazonaws.com mail host",
+                    "java -jar edit-json.jar local-config/configuration.json set string $emailUser mail user",
+                    "java -jar edit-json.jar local-config/configuration.json set string $baseDomainName mail fromDomain",
+                    "java -jar edit-json.jar local-config/configuration.json set string  ",
+                    setDatabasePasswordCommand,
+                    setEmailPasswordCommand,
                     "java -jar edit-json.jar local-config/secrets/secret-configuration.json set string \$DATABASE_PASSWORD database root password",
                     "java -jar edit-json.jar local-config/secrets/secret-configuration.json set string \$DATABASE_PASSWORD database immutable password",
                     "java -jar edit-json.jar local-config/secrets/secret-configuration.json set string \$DATABASE_PASSWORD database mutable password",
+                    "java -jar edit-json.jar local-config/secrets/secret-configuration.json set string \$EMAIL_PASSWORD mail password",
                     "java -jar condorcet-backend-console.jar restore"
                 ),
                 executable
@@ -333,7 +351,7 @@ class Runner : Runnable {
             val mySqlScript = createFile(
                 "/home/ec2-user/run-mysql.sh",
                 listOf(
-                    setPasswordCommand,
+                    setDatabasePasswordCommand,
                     "mysql --host=${database.dbInstanceEndpointAddress} --user=root --password=\$DATABASE_PASSWORD"
                 ),
                 executable
