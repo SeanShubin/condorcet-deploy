@@ -103,6 +103,7 @@ class Runner : Runnable {
         val apiDomainName = loadStringFromConfig("domain", "api")
         val appDomainName = loadStringFromConfig("domain", "app")
         val allowSsh = loadBooleanFromConfig("security", "allowSsh")
+        val emailHost = loadStringFromConfig("mail", "host")
         val emailUser = loadStringFromConfig("mail", "user")
         val vpcStack = VpcStack(app, stackProps, allowSsh)
         val databaseStack = DatabaseStack(
@@ -120,6 +121,7 @@ class Runner : Runnable {
             vpcStack.databasePassword,
             stackProps,
             baseDomainName,
+            emailHost,
             emailUser
         )
         val websiteStack = WebsiteStack(
@@ -259,7 +261,8 @@ class Runner : Runnable {
         databasePassword: Secret,
         stackProps: StackProps,
         baseDomainName:String,
-        emailUser:String
+        emailUser:String,
+        emailHost:String
     ) : Stack(scope, Names.appStackId, stackProps) {
         val bucketWithFilesForEc2 = createFilesForEc2Bucket()
         val ec2 = createEc2Instance(
@@ -269,6 +272,7 @@ class Runner : Runnable {
             database,
             databasePassword,
             baseDomainName,
+            emailHost,
             emailUser
         )
         val bucketWithFilesForWebsite = createWebsiteBucket(ec2)
@@ -299,6 +303,7 @@ class Runner : Runnable {
             database: DatabaseInstance,
             databasePassword: Secret,
             baseDomainName:String,
+            emailHost:String,
             emailUser:String
         ): Instance {
             val servicePrincipal = ServicePrincipal("ec2.amazonaws.com")
@@ -334,7 +339,7 @@ class Runner : Runnable {
                     "java -jar edit-json.jar local-config/configuration.json set string ${database.dbInstanceEndpointAddress} database root host",
                     "java -jar edit-json.jar local-config/configuration.json set string ${database.dbInstanceEndpointAddress} database immutable host",
                     "java -jar edit-json.jar local-config/configuration.json set string ${database.dbInstanceEndpointAddress} database mutable host",
-                    "java -jar edit-json.jar local-config/configuration.json set string email-smtp.us-east-1.amazonaws.com mail host",
+                    "java -jar edit-json.jar local-config/configuration.json set string $emailHost mail host",
                     "java -jar edit-json.jar local-config/configuration.json set string $emailUser mail user",
                     "java -jar edit-json.jar local-config/configuration.json set string $baseDomainName mail fromDomain",
                     "java -jar edit-json.jar local-config/configuration.json set string  ",
