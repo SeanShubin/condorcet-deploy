@@ -261,8 +261,8 @@ class Runner : Runnable {
         databasePassword: Secret,
         stackProps: StackProps,
         baseDomainName:String,
-        emailUser:String,
-        emailHost:String
+        emailHost:String,
+        emailUser:String
     ) : Stack(scope, Names.appStackId, stackProps) {
         val bucketWithFilesForEc2 = createFilesForEc2Bucket()
         val ec2 = createEc2Instance(

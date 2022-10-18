@@ -14,5 +14,17 @@
   "hosted-zone:account=964638509728:domainName=pairwisevote.org:region=us-east-1": {
     "Id": "/hostedzone/Z03310473GG6WYXYEU0FD",
     "Name": "pairwisevote.org."
+  },
+  "availability-zones:account=837465188358:region=us-east-1": [
+    "us-east-1a",
+    "us-east-1b",
+    "us-east-1c",
+    "us-east-1d",
+    "us-east-1e",
+    "us-east-1f"
+  ],
+  "hosted-zone:account=837465188358:domainName=tl-dev.cjpowered.com:region=us-east-1": {
+    "Id": "/hostedzone/Z07910631AUHCVV9NSOAU",
+    "Name": "tl-dev.cjpowered.com."
   }
 }
